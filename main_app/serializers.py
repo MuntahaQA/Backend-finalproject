@@ -37,6 +37,7 @@ class ProgramSerializer(serializers.ModelSerializer):
 
 
 class EventSerializer(serializers.ModelSerializer):
+    
     charity_name = serializers.CharField(source='charity.name', read_only=True)
 
     class Meta:
@@ -51,6 +52,7 @@ class EventRegistrationSerializer(serializers.ModelSerializer):
 
 
 class ProgramApplicationSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = ProgramApplication
         fields = "__all__"
