@@ -824,6 +824,7 @@ class ProgramStatistics(APIView):
             ).annotate(
                 beneficiary_count=Count("beneficiary", distinct=True), application_count=Count("id")
             ).order_by("-beneficiary_count")
+            
             by_charity = [{
                 "charity_id": r["beneficiary__charity__id"],
                 "charity_name": r["beneficiary__charity__name"],
