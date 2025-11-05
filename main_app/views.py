@@ -1,14 +1,4 @@
-"""
-TABLE OF CONTENT
-- IMPORTS & HELPERS
-- HOME
-- CHARITIES (Index, Detail)
-- BENEFICIARIES (Index, Detail)
-- PROGRAMS (Index, Detail, Applications)
-- EVENTS (Index, Detail, Registrations)
-- AUTH (CreateUser, Login, UserProfile, VerifyUser, CharityRegister, MinistryRegister)
-- STATISTICS (MinistryStatistics, ProgramStatistics, CharityStatistics)
-"""
+
 
 # ===== IMPORTS & HELPERS =====
 from datetime import timedelta
@@ -48,7 +38,7 @@ def err(message, http=status.HTTP_400_BAD_REQUEST):
     return Response({"error": message}, status=http)
 
 
-def is_ministry(user):  # نفس منطقك: مشرف = مستخدم وزارة
+def is_ministry(user): 
     return bool(user and user.is_authenticated and user.is_superuser)
 
 
@@ -333,7 +323,6 @@ class ProgramApplications(APIView):
                 return err("Only beneficiaries can apply to programs", status.HTTP_403_FORBIDDEN)
             program = get_object_or_404(Program, id=program_id)
             beneficiary = request.user.beneficiary_profile
-            # منع التكرار (وكمان فيه UniqueConstraint في الموديل)
             if ProgramApplication.objects.filter(beneficiary=beneficiary, program=program).exists():
                 return err("You have already applied to this program")
             payload = {**request.data, "program": program_id,
@@ -436,11 +425,9 @@ class EventRegistrations(APIView):
             event = get_object_or_404(Event, id=event_id)
             beneficiary = request.user.beneficiary_profile
 
-            # منع التكرار (وكمان فيه UniqueConstraint في الموديل)
             if EventRegistration.objects.filter(beneficiary=beneficiary, event=event).exists():
                 return err("You are already registered for this event")
 
-            # التحقق من السعة الحالية
             current = EventRegistration.objects.filter(event=event).count()
             if event.max_capacity is not None and current >= event.max_capacity:
                 return err("Event is full")
@@ -452,7 +439,6 @@ class EventRegistrations(APIView):
             try:
                 instance = serializer.save()
             except IntegrityError:
-                # في حال سباق بين طلبين متزامنين
                 return err("You are already registered for this event")
 
             return Response(self.serializer_class(instance).data, status=status.HTTP_201_CREATED)
@@ -1172,3 +1158,4 @@ class CharityStatistics(APIView):
             return err(str(e), status=status.HTTP_403_FORBIDDEN)
         except Exception as e:
             return err(str(e), status.HTTP_500_INTERNAL_SERVER_ERROR)
+
