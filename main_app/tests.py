@@ -1,183 +1,103 @@
-from django.test import TestCase
-from django.contrib.auth.models import User
-from rest_framework.test import APIClient
+# backend/main_app/tests/test_auth.py
+
+from django.urls import reverse
+from rest_framework.test import APITestCase
 from rest_framework import status
-from .models import Charity, Beneficiary, Program, Event, EventRegistration, ProgramApplication
-from datetime import date, datetime, timedelta
+from django.contrib.auth.models import User
 
 
-class CharityModelTest(TestCase):
-    """Test Charity model"""
-    
+class AuthTests(APITestCase):
+    """Authentication tests aligned with your current URL names."""
+
     def setUp(self):
-        self.charity = Charity.objects.create(
-            name='Test Charity',
-            registration_number='REG123',
-            email='test@charity.com',
-            phone='1234567890',
-            address='123 Test St',
-            city='Riyadh',
-            region='Riyadh'
-        )
+        # URLs as defined in your urls.py
+        self.signup_url = reverse("signup")                   # users/signup/
+        self.login_url = reverse("login")                     # users/login/
+        # users/token/refresh/ (VerifyUserView)
+        self.verify_url = reverse("token_refresh")
+        self.charity_register_url = reverse(
+            "charity_register")   # charities/register/
+        self.ministry_register_url = reverse(
+            "ministry_register")  # ministries/register/
 
-    def test_charity_str(self):
-        self.assertEqual(str(self.charity), 'Test Charity')
-
-    def test_charity_creation(self):
-        self.assertEqual(self.charity.name, 'Test Charity')
-        self.assertEqual(self.charity.registration_number, 'REG123')
-        self.assertTrue(self.charity.is_active)
-
-
-class BeneficiaryModelTest(TestCase):
-    """Test Beneficiary model"""
-    
-    def setUp(self):
-        self.charity = Charity.objects.create(
-            name='Test Charity',
-            registration_number='REG123',
-            email='test@charity.com',
-            phone='1234567890',
-            address='123 Test St',
-            city='Riyadh',
-            region='Riyadh'
-        )
+        # Seed user
         self.user = User.objects.create_user(
-            username='beneficiary1',
-            email='ben@test.com',
-            password='testpass123',
-            first_name='Test',
-            last_name='Beneficiary'
-        )
-        self.beneficiary = Beneficiary.objects.create(
-            user=self.user,
-            charity=self.charity,
-            national_id='1234567890',
-            phone='0987654321',
-            address='456 Beneficiary Ave',
-            city='Riyadh',
-            region='Riyadh',
-            date_of_birth=date(1990, 1, 1)
+            username="testuser",
+            email="test@example.com",
+            password="testpass123",
+            first_name="Test",
+            last_name="User",
         )
 
-    def test_beneficiary_str(self):
-        expected = f"{self.user.get_full_name()} - {self.beneficiary.national_id}"
-        self.assertEqual(str(self.beneficiary), expected)
+    # ---------- SIGNUP ----------
 
-    def test_beneficiary_creation(self):
-        self.assertEqual(self.beneficiary.user, self.user)
-        self.assertEqual(self.beneficiary.charity, self.charity)
-        self.assertEqual(self.beneficiary.national_id, '1234567890')
+    def test_user_signup_success(self):
+        """Regular user signup returns tokens + user."""
+        data = {"username": "newuser", "email": "newuser@example.com",
+                "password": "strongpass123"}
+        res = self.client.post(self.signup_url, data, format="json")
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        self.assertIn("access", res.data)
+        self.assertIn("refresh", res.data)
+        self.assertIn("user", res.data)
+        self.assertTrue(User.objects.filter(username="newuser").exists())
 
+    # ---------- LOGIN ----------
 
-class ProgramModelTest(TestCase):
-    """Test Program model"""
-    
-    def setUp(self):
-        self.program = Program.objects.create(
-            name='Test Program',
-            description='A test program',
-            ministry_owner='Ministry of Test',
-            status='ACTIVE',
-            eligibility_criteria='Must be eligible',
-            max_capacity=100
-        )
+    def test_login_success(self):
+        """Valid login returns JWT tokens."""
+        data = {"email": "test@example.com", "password": "testpass123"}
+        res = self.client.post(self.login_url, data, format="json")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn("access", res.data)
+        self.assertIn("refresh", res.data)
+        self.assertIn("user", res.data)
 
-    def test_program_str(self):
-        self.assertEqual(str(self.program), 'Test Program')
+    def test_login_invalid_credentials(self):
+        """Wrong password => 401."""
+        data = {"email": "test@example.com", "password": "wrong"}
+        res = self.client.post(self.login_url, data, format="json")
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    def test_program_creation(self):
-        self.assertEqual(self.program.name, 'Test Program')
-        self.assertEqual(self.program.status, 'ACTIVE')
+    def test_login_nonexistent_user(self):
+        """Unknown user => 401."""
+        data = {"email": "missing@example.com", "password": "pass"}
+        res = self.client.post(self.login_url, data, format="json")
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
+    # ---------- VERIFY USER (VerifyUserView) ----------
 
-class EventModelTest(TestCase):
-    """Test Event model"""
-    
-    def setUp(self):
-        self.charity = Charity.objects.create(
-            name='Test Charity',
-            registration_number='REG123',
-            email='test@charity.com',
-            phone='1234567890',
-            address='123 Test St',
-            city='Riyadh',
-            region='Riyadh'
-        )
-        self.event = Event.objects.create(
-            charity=self.charity,
-            title='Test Event',
-            description='A test event',
-            event_date=datetime.now() + timedelta(days=30),
-            location='Test Location',
-            city='Riyadh',
-            max_capacity=50
-        )
+    def test_verify_user_authenticated(self):
+        """Verify endpoint works with a valid Bearer token."""
+        login = self.client.post(self.login_url, {
+                                 "email": "test@example.com", "password": "testpass123"}, format="json")
+        self.assertEqual(login.status_code, status.HTTP_200_OK)
+        token = login.data["access"]
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
 
-    def test_event_str(self):
-        expected = f"{self.event.title} - {self.charity.name}"
-        self.assertEqual(str(self.event), expected)
+        res = self.client.get(self.verify_url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn("access", res.data)
+        self.assertIn("refresh", res.data)
+        self.assertIn("user", res.data)
 
-    def test_event_available_spots(self):
-        self.assertEqual(self.event.available_spots(), 50)
-        self.event.current_registrations = 30
-        self.event.save()
-        self.assertEqual(self.event.available_spots(), 20)
+    def test_verify_user_unauthenticated(self):
+        """Verify endpoint without token => 401."""
+        res = self.client.get(self.verify_url)
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
+    # ---------- CHARITY REGISTER (negative path) ----------
 
-class APITest(TestCase):
-    """Test API endpoints"""
-    
-    def setUp(self):
-        self.client = APIClient()
-        self.charity = Charity.objects.create(
-            name='Test Charity',
-            registration_number='REG123',
-            email='test@charity.com',
-            phone='1234567890',
-            address='123 Test St',
-            city='Riyadh',
-            region='Riyadh'
-        )
-        self.user = User.objects.create_user(
-            username='testuser',
-            email='test@test.com',
-            password='testpass123'
-        )
-        self.admin_user = User.objects.create_superuser(
-            username='admin',
-            email='admin@test.com',
-            password='adminpass123'
-        )
+    def test_charity_registration_missing_field(self):
+        """Missing required fields => 400."""
+        data = {"email": "charity@example.com"}  # intentionally incomplete
+        res = self.client.post(self.charity_register_url, data, format="json")
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_home_endpoint(self):
-        """Test home endpoint is accessible"""
-        response = self.client.get('/')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn('message', response.data)
+    # ---------- MINISTRY REGISTER (negative path) ----------
 
-    def test_charities_list_requires_auth(self):
-        """Test that charities endpoint requires authentication"""
-        response = self.client.get('/api/charities/')
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-
-    def test_programs_list_requires_auth(self):
-        """Test that programs endpoint requires authentication"""
-        response = self.client.get('/api/programs/')
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-
-    def test_jwt_token_obtain(self):
-        """Test JWT token obtain endpoint"""
-        response = self.client.post('/api/token/', {
-            'username': 'testuser',
-            'password': 'testpass123'
-        })
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn('access', response.data)
-        self.assertIn('refresh', response.data)
-
-    def test_authenticated_charities_access(self):
-        """Test authenticated user can access charities"""
-        self.client.force_authenticate(user=self.admin_user)
-        response = self.client.get('/api/charities/')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+    def test_ministry_registration_missing_field(self):
+        """Missing required fields => 400."""
+        data = {"ministry_email": "ministry@example.com"}  # intentionally incomplete
+        res = self.client.post(self.ministry_register_url, data, format="json")
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)

@@ -1,207 +1,166 @@
-## 🏛️ SILA – Backend (API & Data Infrastructure)
+# 🏛️ SILA – Backend 
 
-The **SILA Backend** powers the unified charity data ecosystem by providing secure APIs, role-based authentication, and integrated data management for **Charities**, **Beneficiaries**, and **Program-Owner Ministries**.  
-It enables transparent collaboration between the **Ministry of Human Resources and Social Development (HRSD)** — the superuser authority — and other **ministries** responsible for specific programs (e.g., *Sakani* by the Ministry of Housing, *Takaful* by the Ministry of Education).
-
-This repository focuses on the **server-side logic** — including database models, API endpoints, and administrative control through **Django Admin**.
-
-## 📘 Project & Repository Description
-
-The SILA Backend forms the foundation of the system’s operations. It manages data exchange between government ministries and local charities and ensures that beneficiaries can securely access programs and events.
-
-### Key Responsibilities
-- Provide RESTful APIs consumed by the React Frontend  
-- Handle authentication using JWT tokens  
-- Manage CRUD operations for charities, beneficiaries, events, and program applications  
-- Serve as the central integration point for ministries and charity data  
-- Offer a secure admin interface for HRSD via Django Admin  
-
-### System Roles
-- **HRSD (Super User):** Full access via Django Admin; manages charities and national programs.  
-- **Charity Admin:** Manages beneficiaries and events; read-only access to program status.  
-- **Beneficiary:** Logs in to manage their own data, register for events, and apply for available programs.
+The **SILA Backend** powers the unified national platform that connects **Government Ministries** and **Local Charities** to coordinate and deliver social support programs.  
+It provides secure APIs, robust data models, and centralized management to ensure **unified and synchronized data** across all entities within the SILA ecosystem.
 
 ---
-## 🧩 Tech Stack
 
-- **Programming Language:** Python 3.11  
-- **Framework:** Django 5 + Django REST Framework (DRF)  
-- **Authentication:** JWT (SimpleJWT)  
-- **Database:** PostgreSQL  
-- **Containerization:** Docker 
-- **Admin Interface:** Django Admin  
-- **Deployment:** 
-- **Development Environment:** Visual Studio Code  
+## 📘 Project Description
 
+The **SILA Backend** forms the operational core of the SILA system — managing all server-side processes, authentication, and data exchange between ministries and charities.  
+Built with **Django**, it ensures security, scalability, and transparency in managing social assistance programs and beneficiary records.  
+All data within the platform is **centrally managed**, maintaining consistency between ministry dashboards, charity records, and event data.
 
-## 🔗 Related Repositories & Links
+- 🏢 **Ministry Users** can create and manage **government support programs**, monitor applications, and access detailed analytics dashboards.  
+- 🕊️ **Charity Users** can register and manage **beneficiaries**, organize **charity events**, and track participation and outcomes.  
 
-| Item | Link |
-|------|------|
-| **Frontend Repository** | [SILA Frontend Repo](https://github.com/MuntahaQA/sila_frontend) |
-| **Backend Repository** | [SILA Backend Repo](https://github.com/MuntahaQA/sila_backend) |
-| **Live Backend Site (API)** | 
+The backend serves as the main communication layer between the database and the frontend client, handling API requests, business logic, and user role management — ensuring seamless and secure data flow across all connected systems.
+
+---
+
+## 🗂️ Repository Description
+
+This repository contains all **server-side code** and logic for the SILA platform, including:
+
+- **Core Applications:** Django apps for charities, ministries, beneficiaries, programs, and events.  
+- **API Endpoints:** Secure RESTful endpoints for CRUD operations and data synchronization.  
+- **Authentication System:** JWT-based role management for ministries and charities.  
+- **Database Models:** Centralized schema ensuring consistent data across all system modules.  
+- **Admin Interface:** Django Admin for superuser and ministry-level management.  
+- **Unified Data Layer:** Guarantees accurate and synchronized information shared across all user types.
+
+---
+## ⚙️ Tech Stack
+
+| Category | Technology |
+|-----------|-------------|
+| **Language** | Python |
+| **Framework** | Django 5 |
+| **API Toolkit** | Django REST Framework |
+| **Authentication** | JWT (SimpleJWT) |
+| **Database** | PostgreSQL |
+|
+
+| Repository | Link |
+|-------------|------|
+| **Frontend Repository** | [Fawatiri Frontend Repo](https://github.com/MuntahaQA/Frontend-finalproject) |
+| **Backend Repository** | [Fawatiri Backend Repo](https://github.com/MuntahaQA/Backend-finalproject) | |
+| **Live Backend** | http://localhost:8000
+ |
+
 
 ## 🗺️ ERD Diagram
-![ERD](./assets/sila_ERD.svg)
-**Main Entities:**
-- `User` → base authentication model (roles: superuser(HRSD),Charity Admin, Beneficiary)  
-- `Charity` → organization profile  
-- `Beneficiary` → person registered under a charity  
-- `Event` → charity event for beneficiaries  
-- `Program` → government support program  
+![ERD](./assets/)
 
 ## 🧭 Routing Table
 
+
+### 🏠 Home
 | Route | Method | Access | Role | Description |
-|---------|---------|---------|---------|-------------|
-| `/` | GET | Public | Any | Landing page with overview and login entry. |
-| `/login` | GET / POST | Public | Charity Admin, Beneficiary | Display login and submit credentials. |
-| `/logout` | POST | Protected | All | End user session and redirect to the landing page. |
-| `/admin` | GET | Protected | Ministry | Django Admin: manage charities and government programs. |
-| `/ministry/dashboard` | GET | Protected | Ministry | Dashboard showing all charities, programs, and overall stats. |
-| `/charity/dashboard` | GET | Protected | Charity Admin | KPIs for one charity (beneficiaries, events, programs). |
-| `/charity/settings` | GET / PATCH | Protected | Charity Admin | View or update charity information and settings. |
-| `/beneficiaries` | GET | Protected | Charity Admin | List and search beneficiaries. |
-| `/beneficiaries/new` | POST | Protected | Charity Admin | Create a new beneficiary record. |
-| `/beneficiaries/:id` | GET | Protected | Charity Admin | View beneficiary details. |
-| `/beneficiaries/:id/edit` | PATCH / PUT | Protected | Charity Admin | Update beneficiary information. |
-| `/beneficiaries/:id/delete` | DELETE | Protected | Charity Admin | Delete a beneficiary (with confirmation). |
-| `/events` | GET | Protected | Charity Admin | List events created by this charity. |
-| `/events/new` | POST | Protected | Charity Admin | Create a new event. |
-| `/events/:id` | GET | Protected | Charity Admin, Beneficiary | View event details. |
-| `/events/:id/edit` | PATCH / PUT | Protected | Charity Admin | Edit existing event. |
-| `/events/:id/delete` | DELETE | Protected | Charity Admin | Delete an event. |
-| `/events/:id/register` | POST | Protected | Beneficiary | Register for an event (check capacity/waitlist). |
-| `/events/:id/cancel` | POST / DELETE | Protected | Beneficiary | Cancel an event registration. |
-| `/events/:id/registrations` | GET | Protected | Charity Admin | Manage event registrations (confirm, mark attended, export). |
-| `/programs` | GET | Protected | Charity Admin, Beneficiary | View available government support programs. |
-| `/programs/:id` | GET | Protected | Charity Admin, Beneficiary | View detailed info about a program. |
-| `/programs/:id/apply` | POST | Protected | Beneficiary | Apply to a program. |
-| `/programs/:id/application` | GET | Protected | Beneficiary | View or edit the beneficiary’s own application. |
-| `/programs/:id/application/submit` | POST | Protected | Beneficiary | Submit a completed application (to Ministry). |
-| `/programs/:id/application/cancel` | POST / DELETE | Protected | Beneficiary | Cancel or withdraw an application. |
-| `/profile/programs` | GET | Protected | Beneficiary | View my program applications and statuses. |
-| `/beneficiaries/:id/programs` | GET | Protected | Charity Admin | Read-only: see which programs this beneficiary has applied to and their current status. |
-| `/Profile` | GET | Protected | Beneficiary | View own profile information. |
-| `/Profile/edit` | PATCH / PUT | Protected | Beneficiary | Edit personal info (contact, address, etc.). |
-| `/Profile/events` | GET | Protected | Beneficiary | View charity events available to this beneficiary. |
-| `/Profile/programs` | GET | Protected | Beneficiary | View support programs available to this beneficiary. |
+|--------|--------|--------|--------|-------------|
+| `/` | GET | Public | Any | Landing page (Home). |
 
 ---
 
-**Access:**  
-- *Public* = No login required  
-- *Protected* = Requires login (JWT)
+### 🏢 Charities
+| Route | Method | Access | Role | Description |
+|--------|--------|--------|--------|-------------|
+| `/charities/` | GET | Public | Any | List all registered charities. |
+| `/charities/<int:charity_id>/` | GET | Public | Any | Display detailed information about a specific charity. |
 
-**Roles:**  
-- **Ministry (Super User):** Uses Django Admin `/admin` to manage charities & programs  
-- **Charity Admin:** Manages beneficiaries, events, and reviews program applications  
-- **Beneficiary:** Can log in to view/edit data, register for events, and apply to programs  
+---
 
-**Methods:**  
-- `GET` → Retrieve or display data  
-- `POST` → Create or submit data  
-- `PUT / PATCH` → Update existing data  
-- `DELETE` → Remove data  
+### 🕊️ Beneficiaries (Managed by Charity)
+| Route | Method | Access | Role | Description |
+|--------|--------|--------|--------|-------------|
+| `/beneficiaries/` | GET, POST | Protected | Charity Admin | List or create beneficiaries under the logged-in charity. |
+| `/beneficiaries/<int:beneficiary_id>/` | GET, PATCH, DELETE | Protected | Charity Admin | Retrieve, update, or delete beneficiary details. |
 
-## 🚀 Installation Instructions
+---
 
-### Option 1: Using Docker (Recommended)
+### 🏛️ Programs (Managed by Ministry)
+| Route | Method | Access | Role | Description |
+|--------|--------|--------|--------|-------------|
+| `/programs/` | GET, POST | Protected | Ministry | List or create government support programs. |
+| `/programs/<int:program_id>/` | GET, PATCH, DELETE | Protected | Ministry | Retrieve, update, or delete a program. |
+| `/programs/<int:program_id>/applications/` | GET, POST | Protected | Ministry | View or create applications for this program *(feature under development)*. |
+| `/programs/<int:program_id>/statistics/` | GET | Protected | Ministry | View performance metrics and KPIs for a specific program. |
 
-1. **Clone the Repository**
+---
+
+### 📊 Analytics & Statistics
+| Route | Method | Access | Role | Description |
+|--------|--------|--------|--------|-------------|
+| `/ministry/statistics/` | GET | Protected | Ministry | Ministry-wide analytics dashboard. |
+| `/charity/statistics/` | GET | Protected | Charity Admin | Analytics for charity performance (beneficiaries, events, etc.). |
+
+---
+
+### 🎉 Events (Managed by Charity)
+| Route | Method | Access | Role | Description |
+|--------|--------|--------|--------|-------------|
+| `/events/` | GET, POST | Protected | Charity Admin | List or create events for the charity. |
+| `/events/<int:event_id>/` | GET, PATCH, DELETE | Protected | Charity Admin | Retrieve, update, or delete event details. |
+| `/events/<int:event_id>/registrations/` | GET | Protected | Charity Admin | View and manage registrations for a specific event. |
+| `/events/<int:event_id>/registrations/<int:registration_id>/` | DELETE | Protected | Charity Admin | Delete or cancel a specific registration. |
+
+---
+
+### 🔐 Authentication & User Management
+| Route | Method | Access | Role | Description |
+|--------|--------|--------|--------|-------------|
+| `/users/signup/` | POST | Public | Any | Create a general user account. |
+| `/users/login/` | POST | Public | Any | Authenticate user and issue access tokens. |
+| `/users/token/refresh/` | POST | Public* | Any | Refresh access token using a valid refresh token. |
+| `/users/profile/` | GET | Protected | Any (Authenticated) | Retrieve current user profile. |
+| `/charities/register/` | POST | Public | Any | Register a charity organization account. |
+| `/ministries/register/` | POST | Public | Any | Register a ministry organization account. |
+
+
+
+---
+
+✅ **Summary**
+- **Ministry**: Can manage programs and view analytics.  
+- **Charity Admin**: Can manage beneficiaries, create events, and view analytics.  
+- **Beneficiary**: (Future Phase) Will be able to register for programs/events once B2C features are added.
+
+---
+
+## 🚀 Installation Instructions Using Docker
+
+
+1. **Clone the repository**
    ```bash
-   git clone https://github.com/MuntahaQA/sila_backend
-   cd sila_backend
+   git clone https://github.com/MuntahaQA/Backend-finalproject
    ```
 
-2. **Create Environment File**
-   ```bash
-   cp .env.example .env
-   # Edit .env file with your configuration
+2. **Start with Docker Compose**
+
+    ```bash
+   docker-compose up
    ```
 
-3. **Start Services with Docker Compose**
-   ```bash
-   docker-compose up --build
-   ```
+The application will be available at http://localhost:8000
 
-   This will:
-   - Start PostgreSQL database
-   - Run Django migrations
-   - Start the Django development server on `http://localhost:8000`
 
-4. **Create Superuser (in another terminal)**
-   ```bash
-   docker-compose exec backend python manage.py createsuperuser
-   ```
-
-### Option 2: Manual Installation
-
-1. **Clone the Repository**
-   ```bash
-   git clone https://github.com/MuntahaQA/sila_backend
-   cd sila_backend
-   ```
-
-2. **Install Dependencies**
-   ```bash
-   pip install pipenv
-   pipenv install
-   pipenv shell
-   ```
-
-3. **Set up Environment Variables**
-   Create a `.env` file in the backend directory:
-   ```
-   SECRET_KEY=your-secret-key-here
-   DEBUG=True
-   ALLOWED_HOSTS=localhost,127.0.0.1
-   DB_NAME=sila
-   DB_USER=postgres
-   DB_PASSWORD=your-password
-   DB_HOST=localhost
-   DB_PORT=5432
-   CORS_ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000
-   ```
-
-4. **Set up Database**
-   ```bash
-   python manage.py migrate
-   ```
-
-5. **Create Superuser**
-   ```bash
-   python manage.py createsuperuser
-   ```
-
-6. **Run Development Server**
-   ```bash
-   python manage.py runserver
-   ```
-
-### API Endpoints
-
-The API will be available at:
-- Home: `http://localhost:8000/`
-- API Root: `http://localhost:8000/api/`
-- Admin: `http://localhost:8000/admin/`
-- Token Obtain: `http://localhost:8000/api/token/`
-- Token Refresh: `http://localhost:8000/api/token/refresh/`
-
-### Testing
-
-Run tests with:
-```bash
-python manage.py test
-```
 
 ## 🧊 IceBox Features
 
-Future enhancements planned for the SILA Backend:
-- AI-powered beneficiary prioritization algorithms
-- Advanced analytics and reporting endpoints
-- Real-time notifications system
-- Integration with external government APIs
-- Mobile API optimizations
-- Rate limiting and advanced security features
+Future enhancements planned for the **SILA Backend** include:
+- 📱 **Mobile API Optimization:** Enhance API performance and structure for seamless integration with future iOS and Android applications.  
+- 🤖 **AI-Powered Beneficiary Prioritization:** Automatically rank and match beneficiaries to the most suitable programs based on eligibility and needs.  
+- 👤 **Beneficiary Portal (B2C Expansion):** Allow beneficiaries to Login , apply directly to ministry programs and charity events, and track their application status.  
+- 🛡️ **Rate Limiting & Security Enhancements:** Implement advanced request throttling, JWT refresh tokens, and audit logging for maximum system protection.  
+- 🔔 **Real-Time Notifications System:** Enable instant alerts for new program openings, approvals, and event updates.  
+
+- 💪 **Volunteer Management API:**  
+  Extend the backend to support **volunteer registration and event participation tracking**.  
+  Charities will be able to post volunteering opportunities, and users can register or track their volunteering activities through API endpoints.
+
+- 💰 **Donation Management System:**  
+  Implement secure **donation endpoints** that allow individuals and organizations to donate to verified charities.  
+  This includes transaction tracking, reporting for transparency, and integration with national payment gateways (e.g., Mada, Apple Pay).
+
+
+
