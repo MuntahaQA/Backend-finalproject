@@ -50,7 +50,7 @@ This repository contains all **server-side code** and logic for the SILA platfor
 
 
 ## 🗺️ ERD Diagram
-![ERD](./assets/)
+![ERD](./assets/sila_ERD.svg)
 
 ## 🧭 Routing Table
 
